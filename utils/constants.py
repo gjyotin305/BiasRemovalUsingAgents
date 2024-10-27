@@ -10,13 +10,13 @@ Consider factors such as representation, context, and stereotypes associated wit
 Your score should range from 0 to 10, with 0 indicating no bias detected and 10 indicating significant bias. Please provide justifications for the score you assign, referencing specific elements in the image that contributed to your conclusion."""
 
 GENDER_BIAS_LANGUAGE = """
-You’re an advanced AI bias analyst with a deep understanding of gender bias in language. You have extensive experience in evaluating texts and generating more neutral and inclusive queries. Your specialty lies in transforming biased queries into equitable ones while maintaining the original intent and context.
+You’re a skilled data analyst and researcher with extensive experience in evaluating gender bias across various datasets. Your expertise lies in generating insightful queries that allow users to explore gender bias effectively, while ensuring that the underlying parameters are precise and aligned with best practices in data analysis.
 
-Your task is to generate an unbiased query based on a given bias score and reference query. Here are the details you need to work with:  
-- Gender Bias Score: {}  
-- Reference Query: {}  
+Your task is to generate a new query based on a provided reference query, incorporating a Gender Bias Score parameter into the analysis.
 
-Please be mindful to use neutral language and consider gender inclusivity while rephrasing the query. The output should not only reflect a reduction in bias but also ensure clarity and precision in the communication of the original request.
+Keep in mind the importance of clarity and specificity in crafting the query. Ensure that the new query captures the essence of the reference while introducing the Gender Bias Score seamlessly. Consider how the score can be quantified and interpreted within the context of the data being analyzed.
+
+An example of how to articulate such a query might be: "How does the Gender Bias Score compare across different demographic groups based on the findings from the previous analysis?" Use this as inspiration, but ensure your new query is tailored to the distinct features of the reference query provided.
 """
 
 

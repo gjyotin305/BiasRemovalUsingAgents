@@ -25,7 +25,7 @@ class VisualAgent(object):
         model.to("cuda:0")
         conversation = [
             {
-                "role": "system",
+                "role": "user",
                 "content": [
                     {"type": "image"},
                     {"type": "text", "text": f"{self.persona}"}
@@ -37,9 +37,12 @@ class VisualAgent(object):
             add_generation_prompt=True
         )
         inputs = processor(image, prompt, return_tensors="pt").to("cuda:0")
-        output = model.generate(**inputs, max_new_tokens=100)
-        result = processor.decode(output[0], skip_special_tokens=True)
-        return result
+        output = model.generate(**inputs, max_new_tokens=300)
+        result_ = processor.decode(output[0], skip_special_tokens=True)
+
+        decoded_out = str(result_).split("[/INST]")[-1]
+        return decoded_out
+
 
 
 class LanguageAgent(object):
@@ -70,6 +73,13 @@ class LanguageAgent(object):
             add_generation_prompt=True, 
             return_tensors="pt"
         )
-        outputs = model.generate(inputs, max_new_tokens=32)
-        text = tokenizer.batch_decode(outputs)[0]
-        return text
+        outputs = model.generate(inputs, max_new_tokens=300)
+        
+        result_ = tokenizer.decode(outputs[0])
+
+        result_dict = str(result_).split("<|assistant|>")[-1]
+
+        result_dict_ = str(result_dict).split("<|end|>")[0]
+
+
+        return result_dict_
