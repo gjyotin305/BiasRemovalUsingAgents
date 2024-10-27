@@ -1,6 +1,11 @@
 from PIL import Image
 import torch
-from transformers import LlavaNextProcessor, LlavaNextForConditionalGeneration
+from transformers import (
+    LlavaNextProcessor, 
+    LlavaNextForConditionalGeneration,
+    AutoModelForCausalLM,
+    AutoTokenizer
+)
 
 
 class VisualAgent(object):
@@ -35,3 +40,36 @@ class VisualAgent(object):
         output = model.generate(**inputs, max_new_tokens=100)
         result = processor.decode(output[0], skip_special_tokens=True)
         return result
+
+
+class LanguageAgent(object):
+    def __init__(self, persona: str, temperature: int = 0) -> None:
+        self.persona = persona
+        self.temperature = temperature
+    
+
+    def run_agent(self, query: str) -> str:
+        model = AutoModelForCausalLM.from_pretrained(
+            "microsoft/Phi-3-mini-4k-instruct"
+        )
+        tokenizer = AutoTokenizer.from_pretrained(
+            "microsoft/Phi-3-mini-4k-instruct"
+        )
+        messages = [
+            {
+                "role": "system", 
+                "content": f"{self.persona}"
+            },
+            {
+                "role": "user",
+                "content": f"{query}"
+            }
+        ]
+        inputs = tokenizer.apply_chat_template(
+            messages, 
+            add_generation_prompt=True, 
+            return_tensors="pt"
+        )
+        outputs = model.generate(inputs, max_new_tokens=32)
+        text = tokenizer.batch_decode(outputs)[0]
+        return text
