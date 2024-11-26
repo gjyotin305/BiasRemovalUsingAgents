@@ -1,5 +1,5 @@
 from .agents import VisualAgent, LanguageAgent
-from .constants import GENDER_BIAS_LANGUAGE, GENDER_BIAS_VISUAL
+from .constants import LANGUAGE, GENDER_BIAS_VISUAL
 from diffusers import StableDiffusionXLPipeline
 import torch
 
@@ -9,14 +9,23 @@ def run_gender_bias_pipe(query: str):
     pipe = StableDiffusionXLPipeline.from_pretrained(
         "stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.bfloat16
     ).to("cuda")
-    image = pipe(query, num_inference_steps=30).images[0]
+    image = pipe(
+        query,
+        width=512,
+        height=512, 
+        num_inference_steps=20, 
+        num_images_per_prompt=3
+    ).images
+
     torch.cuda.empty_cache()
+    
     gender_vl = VisualAgent(persona=GENDER_BIAS_VISUAL)
-    language_vl = LanguageAgent(persona=GENDER_BIAS_LANGUAGE)
+    language_vl = LanguageAgent(persona=LANGUAGE)
 
-    image.save("init.png")
+    for i, x in enumerate(image):
+        x.save(f"init_{i}.png")
 
-    answer = gender_vl.run_agent(image=image)
+    answer = gender_vl.run_agent(images=image)
     
     final_query = str(answer + "\n" + f"Reference Query: {query}")
 

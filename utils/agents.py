@@ -4,7 +4,9 @@ from transformers import (
     LlavaNextProcessor, 
     LlavaNextForConditionalGeneration,
     AutoModelForCausalLM,
-    AutoTokenizer
+    AutoTokenizer,
+    AutoModelForImageTextToText,
+    BitsAndBytesConfig
 )
 
 
@@ -13,20 +15,26 @@ class VisualAgent(object):
         self.persona = persona
         self.temperature = temperature
     
-    def run_agent(self, image: Image) -> str:
+    def run_agent(self, images: Image) -> str:
         processor = LlavaNextProcessor.from_pretrained(
             "llava-hf/llava-v1.6-mistral-7b-hf"
         )
-        model = LlavaNextForConditionalGeneration.from_pretrained(
-            "llava-hf/llava-v1.6-mistral-7b-hf", 
-            torch_dtype=torch.float16, 
-            low_cpu_mem_usage=True
+
+        quantization_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.float16,
         )
+
+        model = AutoModelForImageTextToText.from_pretrained("llava-hf/llava-v1.6-mistral-7b-hf", quantization_config=quantization_config, device_map="auto")
+
         model.to("cuda:0")
         conversation = [
             {
                 "role": "user",
                 "content": [
+                    {"type": "image"},
+                    {"type": "image"},
                     {"type": "image"},
                     {"type": "text", "text": f"{self.persona}"}
                 ]
@@ -36,11 +44,15 @@ class VisualAgent(object):
             conversation, 
             add_generation_prompt=True
         )
-        inputs = processor(image, prompt, return_tensors="pt").to("cuda:0")
+        processor.tokenizer.padding_side = "left"
+        inputs = processor(images=images, text=prompt, return_tensors="pt").to("cuda:0")
         output = model.generate(**inputs, max_new_tokens=300)
         result_ = processor.decode(output[0], skip_special_tokens=True)
 
         decoded_out = str(result_).split("[/INST]")[-1]
+        print("+"*100)
+        print(decoded_out)
+        print("+"*100)
         return decoded_out
 
 
